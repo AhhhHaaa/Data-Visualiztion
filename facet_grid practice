@@ -1,0 +1,25 @@
+install.packages("Rtsne")
+library(Rtsne)
+library(tidyverse)
+scale.mpg <- scale(mpg[,c(3:5, 8, 9)])
+scale.mpg1 <-  scale(filter(mpg[c(3:5, 8, 9)], year == 1999))
+
+
+distance.mpg <- dist(scale.mpg)
+mpg.tsne <- Rtsne(scale.mpg, check_duplicates = FALSE)
+
+df.mpg <- data.frame(model = mpg$model,
+                     manufacturer = mpg$manufacturer,
+                     year = mpg$year,
+                      tSNE1 = mpg.tsne$Y[ ,1],
+                      tSNE2 = mpg.tsne$Y[ ,2])
+                      
+#facet by the year
+
+ggplot(df.mpg, aes(tSNE1, tSNE2, label = model)) +
+  geom_point() +
+  facet_grid(. ~year) #put right side = facet through x-axis
+  
+ggplot(df.mpg, aes(tSNE1, tSNE2, label = model)) +
+  geom_point() +
+  facet_grid(year~.) #put left side = facet through y-axis
