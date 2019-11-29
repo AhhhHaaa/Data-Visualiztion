@@ -1,0 +1,18 @@
+#6. Creating thematic maps with tmap One --------------------------------
+#map based on the "ploygons"
+#coloured by the variable: population, counties in the UK
+
+install.packages("tmap")
+library(tmap)
+library(rgdal)
+
+#it requires to load the boundary data(shapefile) 
+install.packages("rgdal") #using for read the shapefile
+
+#loading the shapefile
+sheffieldShape <- readOGR(dsn = "./BoundaryData",
+                          layer = "england_lsoa_2011")
+
+#quuck thematic map or qtm()from tmap package
+
+qtm(sheffieldShape)
