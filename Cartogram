@@ -1,0 +1,11 @@
+#step1 create the cartogram()
+#step2 plot by t_map()
+sheffCarto <- cartogram(shape = sheffieldShape, weight = "Num.crimes", itermax = 10,
+                        prepare = "adjust")
+
+tm_shape(sheffCarto) +
+    tm_fill("Num.crimes", style = "jenks") +
+    tm_borders() + tm_layout(frame = FALSE)
+    
+    
+    
