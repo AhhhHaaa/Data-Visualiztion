@@ -1,0 +1,43 @@
+
+# Colossians --------------------------------------------------------------
+#create the interactive plot 
+#loaded the required packages: tidyverse and plotly
+library(tidyverse)
+install.packages("plotly")
+library(plotly)
+
+colour.plot <- ggplot(mpg, aes(displ, cyl)) +
+  geom_point(aes(colour = hwy)) +
+  labs(x = 'Displacement', y = "Cylinders", colour = "Highway\nmpg",
+       title = "GGplotly example", caption = "mpg dataset")
+
+ggplotly(colour.plot) #call ggplotly to create the interactive plot
+#note that ggplotly does not support polar coordinate system
+#note ggplotly doesn't support some plots e.g. waffle
+
+#interactibve bar chart
+gg <- ggplot(mpg, aes(manufacturer)) + geom_bar(aes(fill = drv)) +
+  labs(x = "manufacturer", y = "Frequency", fill = "Drive\ntype",
+       title = "Number of cars released",
+       caption = "mpg dataset")
+ggplotly(gg)
+
+# change the legend position by %>% layout function ---------------------------------------
+ggplotly(gg) %>% 
+  layout(legend = list(x = 1, y = 0.5))
+
+# interactive line chart --------------------------------------------------
+
+gg.line <- ggplot(economics, aes(x = date)) +
+  geom_line(aes(y = unemploy, col = "Unemployed")) +
+  geom_line(aes(y = pop, col = "Total population")) +
+  labs(x = "Date", y = "Numbers in thousands",
+       title = "Unemployment progression", caption = "economic dataset") +
+  scale_y_continuous(trans = "log", breaks = c(10**3, 10**4, 10**5, 10**6)) +
+  scale_colour_manual(name = "Legend", 
+                      values = c("Unemployed" = "red", "total population" = "blue"))
+
+#the line of pop is missing 
+ggplotly(gg.line)
+
+
