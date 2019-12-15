@@ -1,0 +1,72 @@
+# session2  save the image by htmlwidgets package------------------------------------------------------
+
+colour.plot.interactive <- ggplotly(colour.plot)
+htmlwidgets::saveWidget(colour.plot.interactive, "plotly.test.html")
+
+#use partial_bundle to minisize the coding
+reduced.code.plot <- partial_bundle(colour.plot.interactive)
+htmlwidgets::saveWidget(reduced.code.plot, "plot-test-partal.html")
+
+#exercise2 Extra
+#loading the gapminder data 
+gapminder_w_url <- paste0("https://raw.githubusercontent.com/swcarpentry/",
+                          "r-novice-gapminder/gh-pages/_episodes_rmd/",
+                          "data/gapminder_wide.csv")
+gapminder_wide <- read_csv(gapminder_w_url)
+#prcomp for PCA methods
+pca <- prcomp(gapminder_wide[,3:38], scale = TRUE)
+gapminder.pca.scaled <- data.frame(
+  country = gapminder_wide$country,
+  continent = gapminder_wide$continent,
+  PC1 = pca$x[,1],
+  PC2 = pca$x[,2]
+)
+gg.pca <- ggplot(gapminder.pca.scaled, aes(PC1, PC2, label = country)) +
+  geom_text(size = 3) +
+  labs(title= "Scaled PCA of Gapminder data",
+       caption = "gapminder data set from website")
+ggplotly(gg.pca)
+
+# session3 anination plots ------------------------------------------------
+gapminder <- read_csv("gapminder.csv")
+#frame = year: for flames of different years
+#ids = country : for smooth the data 
+gg.animi <- ggplot(gapminder, aes(gdpPercap, lifeExp, colour = continent, 
+                            frame = year, ids = country)) +
+  geom_point(aes(size = pop)) +
+  scale_x_log10()
+
+ggplotly(gg.animi)
+
+# create the facet animation ----------------------------------------------
+# facet_wrap
+gg.animi <- ggplot(gapminder, aes(gdpPercap, lifeExp, colour = continent, 
+                                  frame = year, ids = country)) +
+  geom_point(aes(size = pop)) +
+  facet_wrap(. ~continent) +
+  scale_x_log10()
+
+ggplotly(gg.animi)
+
+# Final exercise ----------------------------------------------------------
+#nycflight13 data set
+nycflights <- read_csv("nycflights13.csv")
+
+
+gg.nycflight1 <- ggplot(nycflights, aes(day, n, frame = month)) +
+  geom_line()
+ggplotly(gg.nycflight1)
+
+gg.nycflight.2 <- ggplot(nycflights, aes(date, n, frame = weekday)) +
+  geom_line()
+ggplotly(gg.nycflight.2)
+
+#extra exercise: change the order
+gg.nycflight.3 <- ggplot(nycflights, aes(date, n, frame = 
+                                           factor(weekday, 
+                                                  levels = c("Mon", "Tue", "Wed",
+                                                             "Thu", "Fri", "Sat",
+                                                             "Sun")))) +
+                           geom_line()
+ggplotly(gg.nycflight.3)
+
