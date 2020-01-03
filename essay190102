@@ -1,0 +1,41 @@
+#Essay of Data Visulisation 
+#Use the api package to download the data from worldbank
+
+install.packages("WDI") #World bank API
+install.packages("tidyverse")
+
+library(WDI)
+library(tidyverse)
+
+#Find the indicators including GDP
+GDP_indicators <- WDIsearch(string = "gdp per capita", field = "name", short = TRUE,
+          cache = NULL)
+#Find the income level
+test1 <- WDI(country = "all", indicator = "NY.GDP.PCAP.CD", start = "2015" ,end = "2018", extra = TRUE)
+#remove the regional GDP by examine if it's with the blank value in capital
+
+#countriesGDP <- test1[!(test1$capital == ""),] 
+#regionGDP is not usable at this moment
+#regionGDP <- test1[test1$capital == "",]
+test2 <- test1 %>% filter(capital != "")%>% 
+  na.omit() 
+countriesGDP <- test1 %>% filter(capital != "") %>% 
+  na.omit()
+#categorise the income level 
+income_level <- unique(countriesGDP$income)
+#
+#install.packages("ggmap")
+#library(ggmap)
+
+# Loading the world map ---------------------------------------------------
+library(rgdal)
+world_data <- map_data("world")
+
+GDP_2018 %>% ggplot(aes(x = longitude, y = latitude) +
+  geom_point()
+  
+
+
+
+
+
