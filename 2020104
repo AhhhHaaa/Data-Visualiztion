@@ -1,0 +1,109 @@
+#Essay of Data Visulisation 
+#Use the api package to download the data from worldbank
+
+install.packages("WDI") #World bank API
+install.packages("tidyverse")
+
+library(WDI)
+library(tidyverse)
+
+#Find the indicators including GDP
+GDP_indicators <- WDIsearch(string = "gdp per capita", field = "name", short = TRUE,
+          cache = NULL)
+#Find the income level
+test1 <- WDI(country = "all", indicator = "NY.GDP.PCAP.CD", start = "2015" ,end = "2018", extra = TRUE)
+#remove the regional GDP by examine if it's with the blank value in capital
+
+#countriesGDP <- test1[!(test1$capital == ""),] 
+#regionGDP is not usable at this moment
+#regionGDP <- test1[test1$capital == "",]
+test2 <- test1 %>% filter(capital != "")%>% 
+  na.omit() 
+countriesGDP <- test1 %>% filter(capital != "") %>% 
+  na.omit()
+
+GDP_2018 <- countriesGDP %>% filter(year == 2018)
+#categorise the income level 
+income_level <- unique(countriesGDP$income)
+
+
+# Loading the world map ---------------------------------------------------
+library(rgdal)
+
+
+#rename and select the columns
+world_map <- map_data("world")
+continent_map <- map_data("continent")
+GDP_2018 <- GDP_2018 %>% 
+  rename(long = longitude, lat = latitude) %>% 
+  select(country, income, capital, country)
+world_map <- world_map %>% rename(country = region)
+
+lat <- sapply(world_map$lat, as.numeric)
+world_map$lat <- round(lat, 4)
+
+long <- sapply(world_map$long, as.numeric)
+world_map$long <- round(long,4)
+
+GDP_2018$lat <- sapply(GDP_2018$lat, as.numeric)
+GDP_2018$long <- sapply(GDP_2018$long, as.numeric)
+#rename and select the columns
+world_map <- world_map %>% 
+  rename(country = region) %>% 
+  select(country, group, order)
+  
+##inner_join by longitude
+test2 <- right_join(GDP_2018, world_map, by = "country")
+#plot the map
+ggplot(test2, aes(long, lat, group = group)) +
+  geom_polygon(aes(fill = income), colour = "white")
+
+literacy_globe <- WDI(country = "all", indicator = "SE.ADT.LITR.ZS"
+                      , start = 2015, end = 2018, extra = TRUE)
+literacy_globe <- na.omit(literacy_globe)
+
+ggplot(literacy_globe, aes(x = longitude, y = latitude, group = iso3c)) +
+  geom_point(aes(fill = income), colour = "white")
+
+#load the require packages to plot the map
+install.packages("tmap")
+install.packages("leaflet")
+install.packages("mapview")
+install.packages("shiny")
+library(tmap)    # for static and interactive maps
+library(leaflet) # for interactive maps
+library(mapview) # for interactive maps
+library(shiny)   # for web applications
+data("World")
+tm_shape(World) +
+  tm_fill() + geom_point(colour = GDP_2018$income)
+
+tmap(World) + geom_point(colour = GDP_2018$income)
+
+
+test_map <- get_map(location = , zoom = 4)
+
+
+p1 <- ggplot(test2, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "lightgrey",colour = "white")
+#
+ggplot(test2, aes(long.x, lat.x, group = group)) + 
+  geom_polygon(aes(fill = income), colour = "white")
+
+#--------
+
+# plot with ggmap ---------------------------------------------------------
+#uk longitude and latitude ( 51.509865, -0.118092)
+library(ggmap)
+uk <- c(left = -8.2, bottom = 48.5, right =  -0.15, top = 59)
+uk_map <- get_stamenmap(uk, zoom = 7, maptype = "toner-lite") %>% ggmap()
+
+uk_gdp <- countriesGDP %>% filter(country =)
+
+get_stamenmap(uk, zoom = 7, maptype = "toner-lite") %>% ggmap() 
++ geom_point(data = countriesGDP, aes(x = longitude, y = latitude))
+
+
+
+
+
