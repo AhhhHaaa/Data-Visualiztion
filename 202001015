@@ -1,0 +1,117 @@
+library(WDI)
+library(tidyverse)
+install.packages("maptools")
+library(maptools)
+library("ggplot2")
+install.packages("sf")
+library("sf")
+
+#Downloading the data
+literacy_globe <- WDI(country = "all", indicator = "SE.ADT.LITR.ZS", start = 2015, end = 2018, extra = TRUE)
+
+#Removing the NAs
+literacy_globe_1 <- na.omit(literacy_globe)
+
+#Saving the data as .csv file as your data contains blank cells which are not NAs
+write.csv(literacy_globe_1, "literacy_globe_1.csv")
+
+#Reading the data from .csv file
+data <- read.csv("literacy_globe_1.csv")
+
+#Removing the NAs
+literacy_globe <- na.omit(data)
+summary(literacy_globe)
+head(literacy_globe,2)
+
+#Mapping using ggplot2 package
+data(wrld_simpl)
+
+#sp to sf conversion
+world <- st_as_sf(wrld_simpl)
+
+# now create the map
+ggplot(world) +
+  geom_sf(colour = "black", fill = NA) + coord_sf(expand = FALSE) + 
+  theme_bw() + 
+  geom_point(aes(longitude, latitude),data= literacy_globe, colour=alpha("red",0.7))
+
+#Using ggplot2 package
+data(wrld_simpl)
+
+#fortify shape file to get into dataframe 
+wrld_simpl.f <- fortify(wrld_simpl, region = "NAME")
+
+class(wrld_simpl.f)
+head(wrld_simpl.f)
+
+merge.shp <- merge(wrld_simpl.f,literacy_globe, 
+                   by.x = "id", by.y = "country", all.x=TRUE)
+final.plot <- merge.shp[order(merge.shp$order),]
+
+head(final.plot, 2)
+
+
+merge.map <- mer
+ggplot() + geom_polygon(data = final.plot, 
+                        aes(x = long, y = lat, group = group, fill = income),
+                        colour = "gray", size = 0.5)
+
+
+#loading world data by map_data
+worldData <- map_data("world")
+#plot the world map with ggplot2
+ggplot(worldData, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill="lightgray", colour = "white")# +
+  geom_point(data = literacy_globe, aes(x = longitude, y = latitude))
+
+
+
+
+# World map (spatial) -----------------------------------------------------
+#download the geospartial data
+download.file("http://thematicmapping.org/downloads/TM_WORLD_BORDERS_SIMPL-0.3.zip" ,
+              destfile="world_shape_file.zip")
+#unzip the data from local directory
+system("unzip world_shape_file.zip")
+#install and library "rgdal" package
+install.packages("rgdal")
+library(rgdal)
+my_spdf <- readOGR(
+  dsn = "./world_shape_file", #data source name
+  layer="TM_WORLD_BORDERS_SIMPL-0.3", #layer name
+  verbose = TRUE #report progress
+  )
+#transform the data by tidy()function
+qtm(my_spdf)
+#create the interactive map 
+tmap_mode("view")
+qtm(my_spdf)
+
+#rename the column iso3 c into ISO3
+data2 <-  data %>% rename(ISO3 = iso3c,
+                          Literacy_rate = SE.ADT.LITR.ZS)
+#replicate on my_spdf1
+my_spdf1 <- my_spdf
+#left_join literacy data and spartial data 
+my_spdf1@data<- left_join(my_spdf1@data, data2, by = "ISO3")
+#plot the choropleth map
+tmap_mode("plot")
+qtm(my_spdf1 ,fill = "income")
+#fortify the data required by ggplot2
+library(broom)
+spdf_fortified <- tidy(my_spdf, region = "NAME")
+my_spdf2 <- st_as_sf(my_spdf)
+#merge literacy and spatial data 
+my_spdf3<- merge(my_spdf2, data2, by.x = "ISO3", by.y = "ISO3", all.x = TRUE)
+
+#plot the map
+ggplot() +
+  geom_polygon(data = my_spdf3, aes(x = LON, y = LAT, group = REGION, fill = income),
+               colour = "black", size = 0.25)
+
+
+
+
+
+
+
