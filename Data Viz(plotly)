@@ -5,7 +5,6 @@ install.packages("ggplot2")
 install.packages("ggthemes")
 library(WDI)
 library(tidyverse)
-library(map_data)
 library(ggthemes)
 
 ##
@@ -17,7 +16,7 @@ cap_form_UK <- WDI(country = "GB", indicator = "NE.GDI.TOTL.ZS", start = NULL, e
 ###### CPI & GDP &capital in uk ---------------------------------------------
 ###indicator FP.CPI.TOTL.ZG for CPI
 CPI_UK <- WDI(country = "GB", extra = TRUE, start = NULL, end = 2018,
-                         indicator= "FP.CPI.TOTL.ZG")
+              indicator= "FP.CPI.TOTL.ZG")
 #GDP data ----------------------------------------------------------------
 ###GDP indicator NY.GDP.MKTP.KD.ZG
 gdp_UK <- WDI(country = "GB", indicator = "NY.GDP.MKTP.KD.ZG", end = 2018)
@@ -31,16 +30,18 @@ deflator_UK <- WDI(country = "GB", indicator = "NY.GDP.DEFL.KD.ZG"
 
 #join the datasets together 
 merge1<- left_join(CPI_UK, cap_form_UK)
-#moving indicators toghter
-merge1 <- merge1[, c(1, 2, 3, 12, 4, 5, 6, 7, 8, 9, 10, 11)]
+
 #join the datasets together
 merge2 <- left_join(merge1, gdp_UK)
+
+#moving indicators together
+merge2 <- merge2[, c(1, 2, 3, 12, 13, 4, 5, 6, 7, 8, 9, 10, 11)]
+
 #rename the column
 merge3 <- merge2 %>% rename("gdp_growth_perc" = "NY.GDP.MKTP.KD.ZG",
                             "cpi_perc" = "FP.CPI.TOTL.ZG",
                             "capital_form_perc" = "NE.GDI.TOTL.ZS")
-#moving the indicator to gether
-merge3 <- merge2 %>% select(1:2, length(merge2), 3:length(merge2))
+
 
 # restructure data by reshape2 --------------------------------------------------------------
 install.packages("reshape2")
@@ -53,30 +54,37 @@ df1 <- melt(df,id = "year")
 # ggplot  -----------------------------------------------------------------
 # p1 basic ----------------------------------------------------------------
 #set the legend names 
-labs <- c("GDP growth %", 
+indicators <- c("GDP growth %", 
           "Consumer Price Index change %", 
           "Capital Foramtion %")
 my_colour <- c("#1C71A6", "#89BF80","#F2BC57")
 bkgrd_colour <- c("#FFF1E0")
 
 #ggplot
+      p1 <- df1 %>% ggplot() + geom_line(aes(x = year,y = value,colour = variable)) +
+          geom_point(aes(x = year,y = value, colour = variable), alpha = 0.8, size = 0.6) +
+          guides(col=guide_legend("Indicators"),# change the legend titles
+             shape = guide_legend("Indicators")) +
+          scale_color_manual(labels = labs, values = c("#1C71A6", "#89BF80","#F2BC57"))+
+          labs(y = "Percentage")
+          
+#new version p1 
 p1 <- df1 %>% ggplot() + geom_line(aes(x = year,y = value,colour = variable)) +
   geom_point(aes(x = year,y = value, colour = variable), alpha = 0.8, size = 0.6) +
-  guides(col=guide_legend("Indicators"),# change the legend titles
-         shape = guide_legend("Indicators")) +
-  scale_color_manual(labels = labs, values = c("#1C71A6", "#89BF80","#F2BC57"))+
+  scale_color_manual(values = c("#1C71A6", "#89BF80","#F2BC57"))+
   labs(y = "Percentage")
+
 
 # (p2) put a vline and annotation on map  -----------------------------------
 p2 <- p1 +geom_vline(xintercept=2008, color="darkgray", size=0.7, alpha = 0.7) +
   annotate("text", x = 2008, y = 10, label = "2008")
-  
+
 # p3 change the theme color  ----------------------------------------------
 p3 <- p2 + theme(panel.background = element_rect(fill = "#FFF1E0", colour = "#FFF1E0")) +
   #theme(plot.background = element_rect(fill = "#FFF1E0", colour = "#FFF1E0")) +
   theme(legend.background = element_rect(fill = "#FFF1E0", colour = "#FFF1E0")) +
   theme(legend.box.background = element_rect(fill = "#FFF1E0", colour = "#FFF1E0"))
-  
+
 #p4 is the plot with different shape
 p4 <- df1 %>% ggplot() + geom_line(aes(x = year, y = value, colour = variable)) +
   geom_point(aes(x = year,y = value, colour = variable, shape = variable), alpha = 0.8) +
@@ -86,7 +94,7 @@ p4 <- df1 %>% ggplot() + geom_line(aes(x = year, y = value, colour = variable)) 
   labs(y = "Percentage")+
   scale_color_manual(labels = labs, 
                      values = c("#1C71A6", "#89BF80","#F2BC57"))
-                     
+
 # plot.ly (interactive plot)  ---------------------------------------------
 install.packages("plotly")
 library("plotly")
@@ -127,11 +135,10 @@ deflator_UK %>% ggplot(aes(x = year, y = NY.GDP.DEFL.KD.ZG)) +
 ##othere useful theme
 #put intersetion faild
 p3 + theme(panel.border = element_blank(),
-          panel.grid.major = element_blank(),panel.background = element_blank(),
-          axis.line = element_line(colour = "black")) 
-  
+           panel.grid.major = element_blank(),panel.background = element_blank(),
+           axis.line = element_line(colour = "black")) 
+
 
 # this argument can be use on change the background colour
 p2 + theme(panel.background = element_rect(fill = "gray"))
-
 
