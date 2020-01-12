@@ -6,47 +6,44 @@ install.packages("tidyverse")
 library(WDI)
 library(tidyverse)
 library(dplyr)
-
-# plot the treemap of gdp(1. sort the data)  ------------------------------------------------
-#This aims to find which countries are largest economies worldwide
-
-#find the data in 2018
-#GDP at market prices (constant 1987 US$)
-#use the second gdp data is because I found that GDP per capita data
-#is lack of variables
-gdp1<- WDI(country = "all", indicator = "NY.GDP.MKTP.CD",
-           start = 1970, end = 2018)
-           
 #GDP per capita growth (annual % )=  NY.GDP.PCAP.KD.ZG
-
+gdp11<- WDI(country = "all", indicator = "NY.GDP.MKTP.CD",
+           start = 1960, end = 2018, extra = TRUE)
 #rename the column
-names(gdp1)[3] <- "GDP at market price"
+names(gdp11)[3] <- "GDP at market price"
+#there some empty values in captial
+#set the empty variables into NA
+gdp11[gdp11 ==""] <- NA
 
-#filter the data in 2018 and eliminate the not recorded data 
-gdp2 <- gdp1 %>% filter(year == c(2018)) %>% na.omit()
-
+#filter the data in 2018 and eliminate the not recorded data(NAs)
+gdp22 <- gdp11 %>% filter(year == c(2018)) %>% na.omit()
 # using "stringr" to find the location of regional data
-str_which(gdp2$country, "World") #return 1 44 
-
+str_which(gdp22$country, "Andorra") #return 6 
 #keep data with countries
-gdp2 <- gdp2[-c(1:44), ]
-
+gdp22 <- gdp22[-1, ]
 #ranked by GDP and order the countries
-gdp_ranked <- gdp2 %>% mutate(rank = dense_rank(desc(`GDP at market price`))) %>% 
+gdp_ranked1 <- gdp22 %>% mutate(rank = dense_rank(desc(`GDP at market price`))) %>% 
   arrange(rank)
-
-
-# plot the treemap of gdp (2. plot the treemap) ---------------------------
-install.packages("treemapify")
-library(treemapify)
-
 #plot the treemap
-
-gdp_ranked1 %>% filter(rank <= 5) %>% 
+tr1 <- 
+  gdp_ranked1 %>% filter(rank <= 10) %>% 
   ggplot(aes(area = `GDP at market price`,
              fill = income, label = country)) +
-  geom_treemap() +
-  geom_treemap_text(colour = "white", place = "centre", reflow = TRUE) +
-  labs(title = "Top 5 Economies",
-       caption = "World Bank data",
-       fill = "")
+  geom_treemap() # +
+
+#Change the colour and theme 
+  tr1 + geom_treemap_text(colour = "white", place = "centre",
+                    reflow = TRUE)
+
+# subgroup treemap --------------------------------------------------------
+# created by more informative data set
+#select the top5 countries
+gdp_ranked1 %>% filter(rank <= 5) %>% 
+    ggplot(aes(area = `GDP at market price`,
+               label = country, 
+               fill = `GDP at market price`)) +
+    geom_treemap(layout = "squarified") + 
+    geom_treemap_text(colour = "white", place = "centre", reflow = TRUE) +
+    labs(title = "Top 5 Economies\n(2018)",
+         caption = "World Bank data",
+         fill = "GDP Growth(%)") + theme_classic()
