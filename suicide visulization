@@ -1,0 +1,42 @@
+# loading the WHO sucide rate data  ---------------------------------------
+#read the suicide rate data
+suicide_rate <- read.csv("suicide_rate.csv", header = TRUE) 
+
+#rename the column names
+colnames(suicide_rate)[] <-  c("country", "sex", "2016", "2015", "2010", "2000")
+
+#Change the data structure
+s1 <- suicide_rate
+s2 <- s1 %>% gather(`2016`, `2015`, `2010`, `2000`, key = "year", value = "person")  
+s2 <- s2 %>% spread(key = sex, value = person) 
+#the column name of "Both sexes" has a blank in
+#trim the blank from colnames
+install.packages("gdata")
+library(gdata)
+colnames(s2) <- trim(colnames(s2))
+library(stringr)
+
+#replace the line by stringr
+#change uk names 
+s2$country <- str_replace(s2$country, "United Kingdom of Great Britain and Northern Ireland", "United Kingdom")
+
+s2$country <- str_replace(s2$country, "United States of America", "United States")
+
+#plot a line
+#name the economies & world
+ecos <- c("United States", "China","Japan","Germany","United Kingdom")
+s3 <- s2 %>% filter(country %in% ecos)#
+  #filter(year == 2016) %>% 
+  #facet the line chart
+  
+p1 <- 
+    ggplot(s3, aes(x = year, y = `Both sexes`, group = 1,colour = country)) + 
+      geom_area(color = "darkblue", fill = "#2955D9") + 
+      facet_wrap(~country, ncol = 1)
+#library the ggthemes
+library(ggthemes)
+#change the color and theme 
+p1 + theme(panel.margin = unit(0, "lines")) + theme_bw() +
+  theme(legend.position = "none") +#remoce the legend 
+  labs(y = "Sucide Rate", title = "Suicide Rate (per 100,000 people)",
+       subtitle = "  WHO dataset")
