@@ -1,4 +1,7 @@
 # loading the WHO sucide rate data  ---------------------------------------
+#World Health Organization. (2018, July 17). Global Health Observatory indicator views. Retrieved January 8, 2020, 
+#data set from WHO website: http://apps.who.int/gho/data/view.main.MHSUICIDEASDRv
+
 #read the suicide rate data
 suicide_rate <- read.csv("suicide_rate.csv", header = TRUE) 
 
@@ -22,6 +25,10 @@ s2$country <- str_replace(s2$country, "United Kingdom of Great Britain and North
 
 s2$country <- str_replace(s2$country, "United States of America", "United States")
 
+
+
+
+
 #plot a line
 #name the economies & world
 ecos <- c("United States", "China","Japan","Germany","United Kingdom")
@@ -29,8 +36,7 @@ s3 <- s2 %>% filter(country %in% ecos)#
   #filter(year == 2016) %>% 
   #facet the line chart
   
-p1 <- 
-    ggplot(s3, aes(x = year, y = `Both sexes`, group = 1,colour = country)) + 
+p1 <- ggplot(s3, aes(x = year, y = `Both sexes`, group = 1,colour = country)) + 
       geom_area(color = "darkblue", fill = "#2955D9") + 
       facet_wrap(~country, ncol = 1)
 #library the ggthemes
@@ -39,4 +45,5 @@ library(ggthemes)
 p1 + theme(panel.margin = unit(0, "lines")) + theme_bw() +
   theme(legend.position = "none") +#remoce the legend 
   labs(y = "Sucide Rate", title = "Suicide Rate (per 100,000 people)",
-       subtitle = "  WHO dataset")
+       subtitle = "WHO dataset")
+
